@@ -41,13 +41,39 @@ def timestamp():
   return datetime.datetime.fromtimestamp(time.time()).strftime('%y%m%d-%H%M%S')
 
 class Dataset():
-  def __init__(self, filepath, snak=False):
+  def __init__(self, filepath, snak=False, include_path=False, reduce=False):
     self.text = []
     p = Path(filepath).glob('**/*')
     files = [x for x in p if x.is_file()]
     self.n=len(files)
     for f in files:
         texto=np.loadtxt(f, dtype=str, comments="~")
+        
+        if reduce:
+            new_text=[]
+            for i in range(len(texto)):
+                t=np.array(list(texto[i]))
+                t[np.where(t == 'd')]='p'
+                t[np.where(t == 'D')]='P'
+                t[np.where(t == '{')]='['
+                t[np.where(t == '}')]=']'
+                t[np.where(t == 'v')]='#'
+                t[np.where(t == '|')]='-'
+                t[np.where(t == 'X')]='V'
+                #t[np.where(t == 'H')]='?'
+                t[np.where(t == ',')]='-'
+                new_text.append(''.join(t))
+            texto=new_text
+        if include_path:
+	        camino=np.loadtxt("Player_Path/"+f.name, dtype=str, comments="~")
+	        new_text=[]
+	        for i in range(len(texto)):
+	            t=np.array(list(texto[i]))
+	            c=np.array(list(camino[i]))
+	            t[np.where(c == 'x')]='m'
+	            new_text.append(''.join(t))
+	        texto=new_text
+            
         if snak:
           self.seq=snaking(texto,0)
           self.text.append(self.seq)
@@ -78,7 +104,7 @@ class Dataset():
   def encode(self, text):
     return [self.char_idx[c] for c in text]
 
-class LSTM:
+class Generador:
   def __init__(self, alpha_size, cell_size, num_layers, dropout):
     self.dropout=dropout
     self.alpha_size = alpha_size
@@ -92,9 +118,9 @@ class LSTM:
     self._metrics()
     self._summaries()
     self._optimizer()
-    config = tf.ConfigProto(device_count = {'GPU': 0})
-    self.sess = tf.Session(config=config)
-    #self.sess = tf.Session()
+    #config = tf.ConfigProto(device_count = {'GPU': 0})
+    #self.sess = tf.Session(config=config)
+    self.sess = tf.Session()
     self.last_state = None
 
   def __del__(self):
@@ -270,20 +296,21 @@ class LSTM:
     writer_trn.add_summary(sum_trn, i+j*len(ds.X_train))
     print(msg.format(i+j*len(ds.X_train), err_trn, acc_trn))
 
-  def restore(self, ds, save_path):
+  def restore(self, ds, save_path, evaluate=False):
     msg = "I{:4d} loss: {:5.3f}, acc: {:4.2f}"
     self.sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     saver.restore(self.sess, save_path+"/best_acc")
-    err_trn, acc_trn, sum_trn = 0, 0, 0
-    for k, (X_evl, Y_evl) in enumerate(ds.test()):    
-        e, a, s = self._evaluate(self.sess, X_evl, Y_evl)
-        err_trn+=e
-        acc_trn+=a
-        sum_trn=s
-    err_trn/=len(ds.X_test)
-    acc_trn/=len(ds.X_test)
-    print(msg.format(0, err_trn, acc_trn))
+    if evaluate:
+        err_trn, acc_trn, sum_trn = 0, 0, 0
+        for k, (X_evl, Y_evl) in enumerate(ds.test()):    
+            e, a, s = self._evaluate(self.sess, X_evl, Y_evl)
+            err_trn+=e
+            acc_trn+=a
+            sum_trn=s
+        err_trn/=len(ds.X_test)
+        acc_trn/=len(ds.X_test)
+        print(msg.format(0, err_trn, acc_trn))
 
   def generate(self, X, reset=False):
     """
@@ -309,13 +336,25 @@ def sample_from_probabilities(ds, probabilities, minProb=0.1):
   return carácter (loseta) escogido
   """
   p = np.squeeze(probabilities)
-  p[np.where(p<minProb)]=0
-  p = p / np.sum(p)
+  if 1 in p:
+  	p[np.where(p<1)]=0
+  else:
+  	p[np.where(p<minProb)]=0
+  #p=p*p
+  p = p/np.sum(p)
   return np.random.choice(ds.idx_char, p=p)[0]
 
 def print_bottomToTop(composition):
+  file = open('testfile.txt','w')
+  level=[]
   for i in range(13, -1, -1):
-    print(composition[i::14])
+  	level.append(composition[i::14]+'\n')
+  for i in range(4):
+  	if 'm' in level[-1]:
+  		level.append(level[0])
+  		level.remove(level[0])
+  print(''.join(level))
+  file.write(''.join(level))
   return
 
 def print_snaking(composition):
@@ -336,34 +375,36 @@ def print_snaking(composition):
 def main(args):
   # Cargar los datos
   dataset_path = "Levels"
-  snak = True
-  ds = Dataset(dataset_path, snak)
+  snak = False
+  include_path=True
+  reduce = True
+  ds = Dataset(dataset_path, snak, include_path, reduce)
   alpha_size = len(ds.idx_char) #Vocabulario
-  cell_size = 128
+  cell_size = 512
   num_layers = 3
-  epochs= 15
+  epochs= 1000
   dropout = 0.5
 
   if len(args) <= 1:
     # Entrenamiento
     print("Dataset {}, alpahbet size: {}".format(dataset_path, alpha_size))
-    model = LSTM(alpha_size, cell_size, num_layers, dropout)
+    model = Generador(alpha_size, cell_size, num_layers, dropout)
     model.train(ds, epochs)
   else:
     with tf.Session() as sess:
-      model = LSTM(alpha_size, cell_size, num_layers, dropout)
+      model = Generador(alpha_size, cell_size, num_layers, dropout)
       model.restore(ds, args[1])
 
   # Generación
-  #text_seed = "#-------------#-------------"
+  
   texto=np.loadtxt(dataset_path+"/mario-1-1.txt", dtype=str, comments="~")
   if snak:
     sec=snaking(texto)
   else:
     sec=bottomToTop(texto)
   text_seed=sec[:28]
-
-  composition_size = 1400 #Tamaño del nivel a crear
+  text_seed = "#-------------#-------------#m------------"
+  composition_size = 2800 #Tamaño del nivel a crear
   composition = []
   #Ingresa el texto semilla a partir del cual se creará el nuevo nivel
   for i, char in enumerate(text_seed):
@@ -371,13 +412,43 @@ def main(args):
     composition.append(idx[0])
     S = model.generate([idx], i==0)
 
+  index_m=ds.idx_char.index('m')
+  index_f=ds.idx_char.index('#')
+  index_pr=ds.idx_char.index(']')
+  index_pl=ds.idx_char.index('[')
+  index_p1=ds.idx_char.index('p')
+  index_p2=ds.idx_char.index('P')
+  index_cd=ds.idx_char.index('c')
+  index_cu=ds.idx_char.index('C')
+  index_yd=ds.idx_char.index('y')
+  index_yu=ds.idx_char.index('Y')
+
   #Obtiene los siguientes (composition_size) caracteres para generar el nivel
   for i in range(composition_size):
     prob_dist = S[0][0]
-    char = np.random.choice(ds.idx_char, p=prob_dist)
-    char = sample_from_probabilities(ds, prob_dist, minProb=0.01)
+    #char = np.random.choice(ds.idx_char, p=prob_dist)
+    if not(snak):
+    	if len(composition) % 14 == 0:
+    		prob_dist[index_f]+=prob_dist[index_m]
+    		prob_dist[index_m]=0
+    	if composition[-14] == index_pl:
+    		prob_dist[index_pr]=1
+    	else:
+    		prob_dist[index_pr]=0
+    	if composition[-14] == index_p1:
+    		prob_dist[index_p2]=1
+    	else:
+    		prob_dist[index_p2]=0
+    	if composition[-1] == index_yd:
+    		prob_dist[index_yu]=1
+    	else:
+    		prob_dist[index_yu]=0
+    	
+    char = sample_from_probabilities(ds, prob_dist, minProb=0.001)
     idx = ds.encode([char])
     composition.append(idx[0])
+    #for i, char in enumerate(composition):
+	#    S = model.generate([idx], i==0)
     S = model.generate([idx])
 
   composition = ds.decode(composition)
@@ -396,3 +467,4 @@ def main(args):
 if __name__ == '__main__':
   import sys
   sys.exit(main(sys.argv))
+  #main([0,'512_BTT_reduce'])
