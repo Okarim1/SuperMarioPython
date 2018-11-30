@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Oct 14 10:53:29 2018
-
 @author: Okarim
 """
 import numpy as np
@@ -60,7 +59,7 @@ class Dataset():
                 t[np.where(t == 'v')]='#'
                 t[np.where(t == '|')]='-'
                 t[np.where(t == 'X')]='V'
-                #t[np.where(t == 'H')]='?'
+                t[np.where(t == 'H')]='?'
                 t[np.where(t == ',')]='-'
                 new_text.append(''.join(t))
             texto=new_text
@@ -237,9 +236,9 @@ class Generador:
     #  self.last_state = np.zeros([len(X), self.state_size])
     # init_state = np.zeros([len(X), self.state_size])
     n=200 #200 data points for BPTT
-    for i in range(0, len(X), n): 
-      stepX=X[i:i+n]
-      stepY=Y_true[i:i+n]
+    for i in range(0, len(X[0]), n): 
+      stepX=[X[0][i:i+n]]
+      stepY=[Y_true[0][i:i+n]]
       feed = {self.X: stepX, self.Y_true: stepY, 
          self.init_state: self.last_state, self.keep_prob : self.dropout}
       fetches = [self.opt, self.state]
@@ -248,7 +247,7 @@ class Generador:
   def train(self, ds, epochs=1):
     """ Train the model. """
     # output message
-    msg = "I{:4d} loss: {:5.3f}, acc: {:4.2f}"
+    msg = "I{:4d} loss: {:5.4f}, acc: {:4.4f}"
     # initialize variables (params)
     self.sess.run(tf.global_variables_initializer())
     # writers for TensorBoard
@@ -328,7 +327,6 @@ def sample_from_probabilities(ds, probabilities, minProb=0.1):
   """Tira los dados para producir un entero aleatorio en el rango de ds.idx_char, 
   de acuerdo con las probabilidades proporcionadas. 
   Si se especifica minProb, solo se tienen en cuenta las probabilidades que sean mayores a ese valor.
-
   ds = dataset
   probabilities = lista de probabilidades para cada loseta
   minProb = probabilidad minima a considerar

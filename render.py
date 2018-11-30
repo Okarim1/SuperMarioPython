@@ -84,7 +84,7 @@ def make_array(texto):
 
 
 dataset_path = "ComputerLevels\\"
-text=np.loadtxt(dataset_path+"5.txt", dtype=str, comments="~")
+text=np.loadtxt(dataset_path+"w1_5.txt", dtype=str, comments="~")
 
 array = make_array(text)
 result = render_level(array, ncols=len(text[0]))
