@@ -394,14 +394,10 @@ def main(args):
       model.restore(ds, args[1])
 
   # Generación
-  
-  texto=np.loadtxt(dataset_path+"/mario-1-1.txt", dtype=str, comments="~")
-  if snak:
-    sec=snaking(texto)
+  if include_path:
+    text_seed = "#-------------#-------------#m------------"
   else:
-    sec=bottomToTop(texto)
-  text_seed=sec[:28]
-  text_seed = "#-------------#-------------#-------------"
+    text_seed = "#-------------#-------------#-------------"
   composition_size = 2800 #Tamaño del nivel a crear
   composition = []
   #Ingresa el texto semilla a partir del cual se creará el nuevo nivel
