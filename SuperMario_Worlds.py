@@ -246,14 +246,21 @@ class Generador:
     #if self.last_state is None:
     #  self.last_state = np.zeros([len(X), self.state_size])
     # init_state = np.zeros([len(X), self.state_size])
-    n=200 #200 data points for BPTT
-    for i in range(0, len(X[0][0]), n): 
-      stepX=[[X[0][0][i:i+n], X[0][1][i:i+n]]]
-      stepY=[Y_true[0][i:i+n]]
-      feed = {self.X: stepX, self.Y_true: stepY, 
-         self.init_state: self.last_state, self.keep_prob : self.dropout}
-      fetches = [self.opt, self.state]
-      _, self.last_state = sess.run(fetches, feed)
+    stepX=[[X[0][0][:], X[0][1][:]]]
+    stepY=[Y_true[0][:]]
+    feed = {self.X: stepX, self.Y_true: stepY, 
+    self.init_state: self.last_state, self.keep_prob : self.dropout}
+    fetches = [self.opt, self.state]
+    _, self.last_state = sess.run(fetches, feed)
+
+    #n=200 #200 data points for BPTT
+    #for i in range(0, len(X[0][0]), n): 
+    #  stepX=[[X[0][0][i:i+n], X[0][1][i:i+n]]]
+    #  stepY=[Y_true[0][i:i+n]]
+    #  feed = {self.X: stepX, self.Y_true: stepY, 
+    #     self.init_state: self.last_state, self.keep_prob : self.dropout}
+    #  fetches = [self.opt, self.state]
+    #  _, self.last_state = sess.run(fetches, feed)
 
   def train(self, ds, epochs=1):
     """ Train the model. """
@@ -274,7 +281,7 @@ class Generador:
     for j in range(epochs):
         for i, (X, Y_true) in enumerate(ds.batch()):
             # evaluation
-            if not i % 5:
+            if not i % 1:
                 err_trn, acc_trn, sum_trn = 0, 0, 0
                 for k, (X_evl, Y_evl) in enumerate(ds.test()):  
                     e, a, s = self._evaluate(self.sess, X_evl, Y_evl)
@@ -405,6 +412,17 @@ def main(args):
       model = Generador(alpha_size, cell_size, num_layers, dropout)
       model.restore(ds, args[1])
       world=int(args[2])
+
+  err_trn, acc_trn, sum_trn = 0, 0, 0
+  for k, (X_evl, Y_evl) in enumerate(ds.test()):    
+    e, a, s = model._evaluate(model.sess, X_evl, Y_evl)
+    err_trn+=e
+    acc_trn+=a
+    sum_trn=s
+  err_trn/=len(ds.X_test)
+  acc_trn/=len(ds.X_test)
+
+  print(err_trn, acc_trn)
 
   # Generación
   if include_path:
