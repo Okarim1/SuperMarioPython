@@ -406,7 +406,8 @@ def main(args):
     composition.append(idx[0])
     S = model.generate([idx], i==0)
 
-  #index_m=ds.idx_char.index('m')
+  if include_path:
+    index_m=ds.idx_char.index('m')
   index_f=ds.idx_char.index('#')
   index_pr=ds.idx_char.index(']')
   index_pl=ds.idx_char.index('[')
@@ -416,15 +417,20 @@ def main(args):
   index_cu=ds.idx_char.index('C')
   index_yd=ds.idx_char.index('y')
   index_yu=ds.idx_char.index('Y')
+  index_q=ds.idx_char.index('?')
 
   #Obtiene los siguientes (composition_size) caracteres para generar el nivel
   for i in range(composition_size):
     prob_dist = S[0][0]
     #char = np.random.choice(ds.idx_char, p=prob_dist)
     if not(snak):
-    	#if len(composition) % 14 == 0:
-    		#prob_dist[index_f]+=prob_dist[index_m]
-    		#prob_dist[index_m]=0
+    	if include_path:
+          if len(composition) % 14 == 0:
+            prob_dist[index_f]+=prob_dist[index_m]
+            prob_dist[index_m]=0
+          if (len(composition)+1) % 14 == 0:
+            prob_dist[index_q]+=prob_dist[index_m]
+            prob_dist[index_m]=0
     	if composition[-14] == index_pl:
     		prob_dist[index_pr]=1
     	else:
