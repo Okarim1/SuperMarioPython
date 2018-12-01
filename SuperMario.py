@@ -401,7 +401,7 @@ def main(args):
   else:
     sec=bottomToTop(texto)
   text_seed=sec[:28]
-  text_seed = "#-------------#-------------#m------------"
+  text_seed = "#-------------#-------------#-------------"
   composition_size = 2800 #Tamaño del nivel a crear
   composition = []
   #Ingresa el texto semilla a partir del cual se creará el nuevo nivel
@@ -410,7 +410,7 @@ def main(args):
     composition.append(idx[0])
     S = model.generate([idx], i==0)
 
-  index_m=ds.idx_char.index('m')
+  #index_m=ds.idx_char.index('m')
   index_f=ds.idx_char.index('#')
   index_pr=ds.idx_char.index(']')
   index_pl=ds.idx_char.index('[')
@@ -426,9 +426,9 @@ def main(args):
     prob_dist = S[0][0]
     #char = np.random.choice(ds.idx_char, p=prob_dist)
     if not(snak):
-    	if len(composition) % 14 == 0:
-    		prob_dist[index_f]+=prob_dist[index_m]
-    		prob_dist[index_m]=0
+    	#if len(composition) % 14 == 0:
+    		#prob_dist[index_f]+=prob_dist[index_m]
+    		#prob_dist[index_m]=0
     	if composition[-14] == index_pl:
     		prob_dist[index_pr]=1
     	else:
@@ -441,6 +441,8 @@ def main(args):
     		prob_dist[index_yu]=1
     	else:
     		prob_dist[index_yu]=0
+    	if composition[-1] == index_cd:
+    		prob_dist[index_cu]=1
     	
     char = sample_from_probabilities(ds, prob_dist, minProb=0.001)
     idx = ds.encode([char])

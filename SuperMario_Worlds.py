@@ -383,7 +383,7 @@ def print_snaking(composition):
 
 def main(args):
   # Cargar los datos
-  dataset_path = "Levels_Difficulty"
+  dataset_path = "Levels"
   snak = False
   include_path=True
   reduce = True
@@ -405,9 +405,14 @@ def main(args):
       model = Generador(alpha_size, cell_size, num_layers, dropout)
       model.restore(ds, args[1])
       world=int(args[2])
+
   # Generación
-  text_seed = "#-------------#-------------#m------------"
+  if include_path:
+    text_seed = "#-------------#-------------#m------------"
+  else:
+    text_seed = "#-------------#-------------#-------------"
   composition_size = 2800 #Tamaño del nivel a crear
+  mp=0.01 #Minima probabilidad a considerar
   composition = []
   #Ingresa el texto semilla a partir del cual se creará el nuevo nivel
   for i, char in enumerate(text_seed):
@@ -415,7 +420,8 @@ def main(args):
     composition.append(idx[0])
     S = model.generate([[idx, [world]]], i==0)
 
-  index_m=ds.idx_char.index('m')
+  if include_path:
+    index_m=ds.idx_char.index('m')
   index_f=ds.idx_char.index('#')
   index_pr=ds.idx_char.index(']')
   index_pl=ds.idx_char.index('[')
@@ -426,16 +432,17 @@ def main(args):
   index_yd=ds.idx_char.index('y')
   index_yu=ds.idx_char.index('Y')
   index_q=ds.idx_char.index('?')
-  mp=0.0
+  
   #Obtiene los siguientes (composition_size) caracteres para generar el nivel
   for i in range(composition_size):
     prob_dist = S[0][0]
     #char = np.random.choice(ds.idx_char, p=prob_dist)
     if not(snak):
-        if len(composition) % 14 == 0:
+        if include_path:
+          if len(composition) % 14 == 0:
             prob_dist[index_f]+=prob_dist[index_m]
             prob_dist[index_m]=0
-        if (len(composition)+1) % 14 == 0:
+          if (len(composition)+1) % 14 == 0:
             prob_dist[index_q]+=prob_dist[index_m]
             prob_dist[index_m]=0
         if composition[-14] == index_pl:
@@ -450,8 +457,6 @@ def main(args):
             prob_dist[index_yu]=1
         else:
             prob_dist[index_yu]=0
-    if i == 500:
-      mp=0.1/(world+1)**2
     char = sample_from_probabilities(ds, prob_dist, minProb=mp)
     idx = ds.encode([char])
     composition.append(idx[0])
