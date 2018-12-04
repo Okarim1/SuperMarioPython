@@ -18,6 +18,8 @@ public class GlobalOptions {
     public static boolean GameVeiwerOn = false;
     public static boolean JsonAsString = true;
 
+    public static int Scale = 1;
+    public static int World = 0;
 
     private static MarioComponent marioComponent = null;
     private static GameViewer gameViewer = null;

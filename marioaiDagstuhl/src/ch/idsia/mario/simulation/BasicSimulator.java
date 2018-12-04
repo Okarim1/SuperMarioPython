@@ -45,6 +45,7 @@ public class BasicSimulator implements Simulation
         marioComponent.setZLevelScene(simulationOptions.getZLevelMap());
         marioComponent.setZLevelEnemies(simulationOptions.getZLevelEnemies());
         if(simulationOptions.getLevel() != null) { // Added by us: means a Level instance was directly bundled in the simulation options
+        	simulationOptions.setLevelType(GlobalOptions.World);
         	marioComponent.startLevel(simulationOptions.getLevelRandSeed(), simulationOptions.getLevelDifficulty()
         			, simulationOptions.getLevelType(), simulationOptions.getLevelLength(),
         			simulationOptions.getTimeLimit(), simulationOptions.getLevel());
