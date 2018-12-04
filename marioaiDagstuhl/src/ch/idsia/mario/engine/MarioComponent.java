@@ -270,10 +270,10 @@ public class MarioComponent extends JComponent implements Runnable, /*KeyListene
                 ((LevelScene) scene).drawStringDropShadow(og, "Trial:", 33, 4, 7);
                 ((LevelScene) scene).drawStringDropShadow(og, msg, 33, 5, 7);
 
-                if (width != 320 || height != 240) {
-                        g.drawImage(image, 0, 0, 640 * 2, 480 * 2, null);
-                } else {
+                if (width < 320 || height < 240) {
                     g.drawImage(image, 0, 0, null);
+                } else {
+                    g.drawImage(image, 0, 0, width, height, null);
                 }
             } else {
                 // Win or Die without renderer!! independently.
