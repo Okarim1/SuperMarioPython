@@ -39,7 +39,7 @@ public class MarioProcess extends Comm {
         // set agents
         createAgentsPool(humanPlayer);
         // Short time for evolution, but more for human
-        if(!humanPlayer) evaluationOptions.setTimeLimit(100);
+        if(!humanPlayer) evaluationOptions.setTimeLimit(50);
         // TODO: Make these configurable from commandline?
         evaluationOptions.setMaxFPS(!humanPlayer); // Slow for human players, fast otherwise
         evaluationOptions.setVisualization(true); // Set true to watch evaluations
