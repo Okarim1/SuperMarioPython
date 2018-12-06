@@ -17,7 +17,6 @@ public class Main {
 		GlobalOptions.Scale = 2;
 		MarioProcess marioProcess = new MarioProcess();
 		marioProcess.launchMario(new String[0], true); // true means there is a human player
-		marioProcess.launchMario(new String[0], true); // true means there is a human player
 		while(true) {
 			File file = files[rand.nextInt(files.length)];
 			System.out.print(file.getPath());

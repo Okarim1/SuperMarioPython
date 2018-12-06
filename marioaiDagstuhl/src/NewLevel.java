@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.concurrent.ThreadLocalRandom;
 
 import ch.idsia.mario.engine.GlobalOptions;
 import ch.idsia.mario.engine.level.Level;
@@ -43,16 +44,11 @@ public class NewLevel {
 		Level level;
 		MarioProcess marioProcess = new MarioProcess();
 		EvaluationInfo evaluationInfo = new EvaluationInfo();
-		for (int i=0; i<30; i++) {
+		int n=200;
+		for (int i=35; i<n; i++) {
 			command = "python SuperMario_Worlds.py";
 			GlobalOptions.Scale = 2;
-			if(i>20) {
-				GlobalOptions.World = 2;
-			}else if(i>10) {
-				GlobalOptions.World = 1;
-			}else {
-				GlobalOptions.World = 0;
-			}
+			GlobalOptions.World = ThreadLocalRandom.current().nextInt(0, 3);;
 			p = Runtime.getRuntime().exec(command+" 512_Worlds_Path "+GlobalOptions.World);
 		    p.waitFor();
 		    bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -78,7 +74,7 @@ public class NewLevel {
 				j++;
 			}while(j<10 && evaluationInfo.marioStatus != 1);
 			if (evaluationInfo.marioStatus == 1) {
-				out = new File("..\\NewLevels\\w"+GlobalOptions.World+"_"+i+".txt");	
+				out = new File("..\\NewLevels\\w"+GlobalOptions.World+"_d"+i+".txt");	
 				copyFileUsingStream(file, out);
 			}
 		}

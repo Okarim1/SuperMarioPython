@@ -59,6 +59,7 @@ class Dataset():
                 t[np.where(t == 'v')]='#'
                 t[np.where(t == '|')]='-'
                 t[np.where(t == 'X')]='V'
+                #t[np.where(t == '>')]='#'
                 t[np.where(t == 'H')]='?'
                 t[np.where(t == ',')]='-'
                 new_text.append(''.join(t))
@@ -390,7 +391,7 @@ def print_snaking(composition):
 
 def main(args):
   # Cargar los datos
-  dataset_path = "Levels"
+  dataset_path = "Levels1"
   snak = False
   include_path=True
   reduce = True
@@ -413,14 +414,14 @@ def main(args):
       model.restore(ds, args[1])
       world=int(args[2])
 
-  err_trn, acc_trn, sum_trn = 0, 0, 0
-  for k, (X_evl, Y_evl) in enumerate(ds.test()):    
-    e, a, s = model._evaluate(model.sess, X_evl, Y_evl)
-    err_trn+=e
-    acc_trn+=a
-    sum_trn=s
-  err_trn/=len(ds.X_test)
-  acc_trn/=len(ds.X_test)
+  #err_trn, acc_trn, sum_trn = 0, 0, 0
+  #for k, (X_evl, Y_evl) in enumerate(ds.test()):    
+  #  e, a, s = model._evaluate(model.sess, X_evl, Y_evl)
+  #  err_trn+=e
+  #  acc_trn+=a
+  #  sum_trn=s
+  #err_trn/=len(ds.X_test)
+  #acc_trn/=len(ds.X_test)
 
   print(err_trn, acc_trn)
 

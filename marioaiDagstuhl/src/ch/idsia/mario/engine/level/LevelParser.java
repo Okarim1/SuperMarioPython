@@ -230,6 +230,7 @@ public class LevelParser {
         int output = 0;
         switch(code){
             case "#": output = 9; break; //rocks
+            case ">": output = 9; break; //rocks
             case "B": output = 16; break; //"S" : ["solid","breakable"]
             case "?": output = 21; break; //"?" : ["solid","question block", "full question block"]
             case "Q": output = 21; break; //"?" : ["solid","question block", "full question block"]
